@@ -1,6 +1,6 @@
 package POJO.task_1;
 
-public class task1 {
+public class ToDo {
 
     private int userId;
     private int id;

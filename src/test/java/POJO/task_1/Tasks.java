@@ -1,6 +1,5 @@
 package POJO.task_1;
 
-import POJO.task_1.task1;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
@@ -26,21 +25,21 @@ public class Tasks {
     @Test
     public void test1() {
 
-        task1 task1 =
+        ToDo ToDo =
 
                 given()
                         .when()
                         .get("https://jsonplaceholder.typicode.com/todos/2")
 
                         .then()
-                        .extract().as(task1.class) //location sablonu
+                        .extract().as(ToDo.class) //location sablonu
                 ;
 
-        System.out.println("task1 = " + task1);
-        System.out.println("task1.getUserId() = " + task1.getUserId());
-        System.out.println("task1.getTitle() = " + task1.getTitle());
-        System.out.println("task1.getId() = " + task1.getId());
-        System.out.println("task1.isCompleted() = " + task1.isCompleted());
+        System.out.println("ToDo = " + ToDo);
+        System.out.println("ToDo.getUserId() = " + ToDo.getUserId());
+        System.out.println("ToDo.getTitle() = " + ToDo.getTitle());
+        System.out.println("ToDo.getId() = " + ToDo.getId());
+        System.out.println("ToDo.isCompleted() = " + ToDo.isCompleted());
 
     }
 
