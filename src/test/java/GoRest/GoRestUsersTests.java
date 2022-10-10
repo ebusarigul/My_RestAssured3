@@ -6,7 +6,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.baseURI;
@@ -16,35 +18,34 @@ import static org.hamcrest.Matchers.equalTo;
 public class GoRestUsersTests {
 
     @BeforeClass
-    void Setup(){
+    void Setup() {
         // RestAssured kendi statik değişkeni tanımlı değer atanıyor.
-        baseURI="https://gorest.co.in/public/v2/";
-    }
-    public String getRandomName()
-    {
-        return RandomStringUtils.randomAlphabetic(8);
-    }
-    public String getRandomEmail()
-    {
-        return RandomStringUtils.randomAlphabetic(8).toLowerCase()+"@gmail.com";
+        baseURI = "https://gorest.co.in/public/v2/";
     }
 
-    int userID=0;
+    public String getRandomName() {
+        return RandomStringUtils.randomAlphabetic(8);
+    }
+
+    public String getRandomEmail() {
+        return RandomStringUtils.randomAlphabetic(8).toLowerCase() + "@gmail.com";
+    }
+
+    int userID = 0;
     User newUser;
 
     @Test
-    public void createUserObject()
-    {
-        newUser=new User();
+    public void createUserObject() {
+        newUser = new User();
         newUser.setName(getRandomName());
         newUser.setGender("male");
         newUser.setEmail(getRandomEmail());
         newUser.setStatus("active");
 
-        userID=
+        userID =
                 given()
                         // api metoduna gitmeden önceki hazırlıklar : token, gidecek body, parametreleri
-                        .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                        .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
                         .contentType(ContentType.JSON)
                         .body(newUser)
                         .log().body()
@@ -66,52 +67,54 @@ public class GoRestUsersTests {
     }
 
     @Test(dependsOnMethods = "createUserObject", priority = 1)
-    public void updateUserObject()
-    {
+    public void updateUserObject() {
 
         newUser.setName("ismet temur");
 
-                given()
-                        .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
-                        .contentType(ContentType.JSON)
-                        .body(newUser)
-                        .log().body()
-                        .pathParam("userID", userID)
-
-                        .when()
-                        .put("users/{userID}")
-
-                        .then()
-                        .log().body()
-                        .statusCode(200)
-                        .body("name", equalTo("ismet temur"))
-                ;
-    }
-
-    @Test(dependsOnMethods = "createUserObject",priority = 2)
-    public void getUserByID()
-    {
         given()
-                .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
                 .contentType(ContentType.JSON)
+                .body(newUser)
                 .log().body()
                 .pathParam("userID", userID)
 
                 .when()
-                .get("users/{userID}")
+                .put("users/{userID}")
 
                 .then()
                 .log().body()
                 .statusCode(200)
-                .body("id", equalTo(userID))
+                .body("name", equalTo("ismet temur"))
         ;
     }
 
-    @Test(dependsOnMethods = "createUserObject",priority = 3)
-    public void deleteUserById()
-    {
+    @Test
+    public void getUserByID() {
+        User user =
+                given()
+                        .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                        .contentType(ContentType.JSON)
+                        //.log().body()
+                        .pathParam("userID", 3414)
+
+                        .when()
+                        .get("users/{userID}")
+
+                        .then()
+                        .log().body()
+                        .statusCode(200)
+                        .extract().as(User.class)
+                ;
+
+        // TODO : GetUserByID testinde dönen user ı bir nesneye atınız.
+        System.out.println("user = " + user);
+
+    }
+
+    @Test(dependsOnMethods = "createUserObject", priority = 3)
+    public void deleteUserById() {
         given()
-                .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
                 .contentType(ContentType.JSON)
                 .log().body()
                 .pathParam("userID", userID)
@@ -126,10 +129,9 @@ public class GoRestUsersTests {
     }
 
     @Test(dependsOnMethods = "deleteUserById")
-    public void deleteUserByIdNegative()
-    {
+    public void deleteUserByIdNegative() {
         given()
-                .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
                 .contentType(ContentType.JSON)
                 .log().body()
                 .pathParam("userID", userID)
@@ -143,57 +145,48 @@ public class GoRestUsersTests {
         ;
     }
 
-    @Test(enabled = false)
-    public void getUsers()
-    {
-        Response response=
-        given()
-                .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+    @Test()
+    public void getUsers() {
+        Response response =
+                given()
+                        .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
 
-                .when()
-                .get("users")
+                        .when()
+                        .get("users")
 
-                .then()
-                .log().body()
-                .statusCode(200)
-                .extract().response()
-        ;
+                        .then()
+                        //.log().body()
+                        .statusCode(200)
+                        .extract().response();
 
-        int thirdIDWithPath = response.path("id");
-        int thirdIDWithJsonPath = response.jsonPath().getInt("id");
-
-        System.out.println("thirdIDWithPath = " + thirdIDWithPath);
-        System.out.println("thirdIDWithJsonPath = " + thirdIDWithJsonPath);
-
-
-
-        //.extract().jsonPath().getInt("id")
         // TODO : 3 usersın id sini alınız (path ve jsonPath ile ayrı ayrı yapınız)
+
+        int idUser3 = response.path("[2].id");
+        int idUser3Json = response.jsonPath().getInt("[2].id");
+
+        System.out.println("idUser3 = " + idUser3);
+        System.out.println("idUser3Json = " + idUser3Json);
+
+
         // TODO : Tüm gelen veriyi bir nesneye atınız
-        // TODO : GetUserByID testinde dönen user ı bir nesneye atınız.
+        User[] usersPath = response.as(User[].class);
+        System.out.println("Arrays.toString(usersPath) = " + Arrays.toString(usersPath));
+
+        List<User> usersJsonPath = response.jsonPath().getList("",User.class);
+        System.out.println("usersJsonPath = " + usersJsonPath);
+
+
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
     @Test(enabled = false)
-    public void createUser()
-    {
-        int userID=
+    public void createUser() {
+        int userID =
                 given()
                         // api metoduna gitmeden önceki hazırlıklar : token, gidecek body, parametreleri
-                        .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                        .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
                         .contentType(ContentType.JSON)
-                        .body("{\"name\":\""+getRandomName()+"\", \"gender\":\"male\", \"email\":\""+ getRandomEmail()+"\", \"status\":\"active\"}")
+                        .body("{\"name\":\"" + getRandomName() + "\", \"gender\":\"male\", \"email\":\"" + getRandomEmail() + "\", \"status\":\"active\"}")
 
                         .when()
                         .post("users")
@@ -209,18 +202,17 @@ public class GoRestUsersTests {
     }
 
     @Test(enabled = false)
-    public void createUserMap()
-    {
-        Map<String,String> newUser=new HashMap<>();
-        newUser.put("name",getRandomName());
-        newUser.put("gender","male");
+    public void createUserMap() {
+        Map<String, String> newUser = new HashMap<>();
+        newUser.put("name", getRandomName());
+        newUser.put("gender", "male");
         newUser.put("email", getRandomEmail());
-        newUser.put("status","active");
+        newUser.put("status", "active");
 
-        int userID=
+        int userID =
                 given()
                         // api metoduna gitmeden önceki hazırlıklar : token, gidecek body, parametreleri
-                        .header("Authorization","Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
+                        .header("Authorization", "Bearer 523891d26e103bab0089022d20f1820be2999a7ad693304f560132559a2a152d")
                         .contentType(ContentType.JSON)
                         .body(newUser)
                         .log().body()
@@ -239,11 +231,20 @@ public class GoRestUsersTests {
 
 }
 
-class User{
+class User {
+    private int id;
     private String name;
     private String gender;
     private String email;
     private String status;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -275,6 +276,16 @@ class User{
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", gender='" + gender + '\'' +
+                ", email='" + email + '\'' +
+                ", status='" + status + '\'' +
+                '}';
     }
 }
 
